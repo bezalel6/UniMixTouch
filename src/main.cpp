@@ -37,8 +37,6 @@ void setup(void) {
 
     Serial.begin(115200);
 
-    SerialBT.begin("ESP32test");  // Bluetooth device name
-    Serial.println("The device started, now you can pair it with bluetooth!");
     // pinMode(LCD_BL, OUTPUT);
     // digitalWrite(LCD_BL, HIGH);
 
@@ -52,16 +50,6 @@ void setup(void) {
 void loop(void) {
     // Update GUI (handle touch events and draw components)
     guiManager.update();
-
-    // Handle Bluetooth communication
-    if (Serial.available()) {
-        SerialBT.write(Serial.read());
-    }
-
-    if (SerialBT.available()) {
-        guiManager.println(SerialBT.readString());
-        // Serial.write(SerialBT.read());
-    }
 
     delay(20);
 }
