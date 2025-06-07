@@ -73,6 +73,64 @@ Button* GuiManager::createButton(Rectangle bounds, const String& text) {
     return button;
 }
 
+Button* GuiManager::createButton(const String& text) {
+    Button* button = new Button(text);
+    addComponent(button);
+    return button;
+}
+
+Label* GuiManager::createLabel(Rectangle bounds, const String& text) {
+    Label* label = new Label(bounds, text);
+    addComponent(label);
+    return label;
+}
+
+Label* GuiManager::createLabel(const String& text) {
+    Label* label = new Label(text);
+    addComponent(label);
+    return label;
+}
+
+ProgressBar* GuiManager::createProgressBar(Rectangle bounds, float minValue, float maxValue) {
+    ProgressBar* progressBar = new ProgressBar(bounds, minValue, maxValue);
+    addComponent(progressBar);
+    return progressBar;
+}
+
+ProgressBar* GuiManager::createProgressBar(float minValue, float maxValue) {
+    ProgressBar* progressBar = new ProgressBar(minValue, maxValue);
+    addComponent(progressBar);
+    return progressBar;
+}
+
+Panel* GuiManager::createPanel(Rectangle bounds) {
+    Panel* panel = new Panel(bounds);
+    addComponent(panel);
+    return panel;
+}
+
+Panel* GuiManager::createPanel() {
+    Panel* panel = new Panel();
+    addComponent(panel);
+    return panel;
+}
+
+Panel* GuiManager::createFlexPanel(LayoutType layoutType) {
+    Panel* panel = new Panel();
+    panel->setLayoutType(layoutType);
+    addComponent(panel);
+    return panel;
+}
+
+Panel* GuiManager::createGridPanel(int columns, int rows) {
+    Panel* panel = new Panel();
+    panel->setLayoutType(LayoutType::GRID);
+    panel->setGridColumns(columns);
+    panel->setGridRows(rows);
+    addComponent(panel);
+    return panel;
+}
+
 void GuiManager::performTouchCalibration() {
     m_lcd.fillScreen(TFT_YELLOW);
 
@@ -241,12 +299,25 @@ void GuiManager::markAllComponentsDirty() {
 
 bool GuiManager::handleComponentTouch() {
     bool touchHandled = false;
-    for (auto* component : m_components) {
-        if (component != nullptr && component->checkTouching(m_lcd)) {
-            component->markDirty();  // Mark for redraw to show visual feedback
-            component->clicked();
-            touchHandled = true;
-            break;  // Handle only the first touched component
+    // Handle touch for components in reverse order (top to bottom)
+    for (auto it = m_components.rbegin(); it != m_components.rend(); ++it) {
+        Component* component = *it;
+        if (component != nullptr) {
+            // Check if it's a Panel and handle its internal touch events first
+            if (component->isPanel()) {
+                Panel* panel = static_cast<Panel*>(component);
+                if (panel->handleTouch(m_lcd)) {
+                    touchHandled = true;
+                    break;
+                }
+            }
+            // If not handled by panel children, check the component itself
+            else if (component->checkTouching(m_lcd)) {
+                component->markDirty();  // Mark for redraw to show visual feedback
+                component->clicked();
+                touchHandled = true;
+                break;  // Handle only the first touched component
+            }
         }
     }
     return touchHandled;

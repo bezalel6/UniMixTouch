@@ -7,7 +7,7 @@ void Button::draw(LGFX lcd) {
     }
 
     // Draw button background
-    lcd.fillRect(bounds.origin.x, bounds.origin.y, bounds.w, bounds.h, TFT_LIGHTGRAY);
+    lcd.fillRect(bounds.origin.x, bounds.origin.y, bounds.w, bounds.h, backgroundColor);
 
     // Calculate text dimensions
     int16_t textWidth = lcd.textWidth(this->text);
@@ -18,8 +18,8 @@ void Button::draw(LGFX lcd) {
     int16_t textX = middle.x - (textWidth / 2);
     int16_t textY = middle.y - (textHeight / 2);
 
-    // Set proper text colors - black text on the light gray button background
-    lcd.setTextColor(TFT_BLACK, TFT_LIGHTGRAY);  // text color, background color
+    // Set proper text colors
+    lcd.setTextColor(textColor, backgroundColor);  // text color, background color
     lcd.setCursor(textX, textY);
     lcd.print(this->text);
 

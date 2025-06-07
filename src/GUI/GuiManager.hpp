@@ -5,6 +5,10 @@
 #include "ESP32_SPI_9341.h"
 #include "component.hpp"
 #include "button.hpp"
+#include "panel.hpp"
+#include "label.hpp"
+#include "progressbar.hpp"
+#include "layout.hpp"
 
 #define DEFAULT_TEXT_SIZE 3
 
@@ -27,6 +31,21 @@ class GuiManager {
     // Helper methods to create common components
     Button* createButton(int x, int y, int width, int height, const String& text);
     Button* createButton(Rectangle bounds, const String& text);
+    Button* createButton(const String& text);  // Layout-managed button
+
+    // Label creation methods
+    Label* createLabel(Rectangle bounds, const String& text);
+    Label* createLabel(const String& text);  // Layout-managed label
+
+    // ProgressBar creation methods
+    ProgressBar* createProgressBar(Rectangle bounds, float minValue = 0.0f, float maxValue = 100.0f);
+    ProgressBar* createProgressBar(float minValue = 0.0f, float maxValue = 100.0f);  // Layout-managed
+
+    // Panel creation methods
+    Panel* createPanel(Rectangle bounds);
+    Panel* createPanel();  // Layout-managed panel
+    Panel* createFlexPanel(LayoutType layoutType = LayoutType::FLEX_COLUMN);
+    Panel* createGridPanel(int columns, int rows);
 
     // Touch and calibration
     void performTouchCalibration();
