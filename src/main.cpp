@@ -55,7 +55,7 @@ void setup(void) {
     mainPanel->bounds = Rectangle(0, 0, guiManager.getWidth(), guiManager.getHeight());
     mainPanel->setBackgroundColor(TFT_BLACK);
     mainPanel->setPadding(20);
-    mainPanel->setGap(20);
+    mainPanel->setGap(10);
     mainPanel->setAlignItems(Alignment::CENTER);
 
     // App title
@@ -143,7 +143,7 @@ void loop(void) {
     // Update GUI (handle touch events and draw components)
     guiManager.update();
 
-    delay(200);
+    delay(50);
 }
 
 // Button callback functions
