@@ -17,9 +17,9 @@ using namespace std;
 #define LIGHT_ADC 34
 
 // Hardware Input Pins (adjust these to your actual wiring)
-#define ENCODER_PIN_A 22
-#define ENCODER_PIN_B 35
-#define ENCODER_BUTTON_PIN 27
+#define ENCODER_PIN_A 27
+#define ENCODER_PIN_B 22
+#define ENCODER_BUTTON_PIN 5
 
 int led_pin[3] = {17, 4, 16};
 
@@ -156,7 +156,6 @@ void setup(void) {
 
 void setupInputDevices() {
     Serial.println("Setting up hardware input devices...");
-
     // Setup rotary encoder with button for volume control
     EncoderConfig volumeEncoder(ENCODER_PIN_A, ENCODER_PIN_B, ENCODER_BUTTON_PIN, true, 0, 100, 50);
     volumeEncoderId = INPUT_SYSTEM.addRotaryEncoder(volumeEncoder);

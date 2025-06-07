@@ -4,10 +4,24 @@
 RotaryEncoderInput::RotaryEncoderInput(uint8_t id, const EncoderConfig& config)
     : InputDevice(id), config(config), encoder(), encoderButton(nullptr), currentValue(config.initialValue), previousValue(config.initialValue), lastRawValue(0), stepsPerNotch(4) {
 }
-
+#define ENABLE_PULLUPS true
 void RotaryEncoderInput::begin() {
+    // Setup pins
+    if (ENABLE_PULLUPS) {
+        pinMode(config.pinA, INPUT_PULLUP);
+        pinMode(config.pinB, INPUT_PULLUP);
+    } else {
+        pinMode(config.pinA, INPUT);
+        pinMode(config.pinB, INPUT);
+    }
+
     // Initialize ESP32Encoder
-    encoder.attachHalfQuad(config.pinA, config.pinB);
+    ESP32Encoder::useInternalWeakPullResistors = ENABLE_PULLUPS ? puType::up : puType::none;
+    encoder.attachFullQuad(config.pinA, config.pinB);
+    // encoder.clearCount();
+
+    // // Initialize ESP32Encoder
+    // encoder.attachHalfQuad(config.pinA, config.pinB);
     encoder.setCount(config.initialValue * stepsPerNotch);
 
     // Initialize button if configured
