@@ -12,7 +12,7 @@ GuiManager::~GuiManager() {
 void GuiManager::init() {
     m_lcd.init();
     m_lcd.setTextSize(m_textSize);
-    m_lcd.setRotation(0);
+    m_lcd.setRotation(3);
 
     // Check if we have saved calibration data
     if (hasSavedCalibration()) {
