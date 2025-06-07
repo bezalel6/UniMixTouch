@@ -22,6 +22,7 @@ class GuiManager {
     void addComponent(Component* component);
     void removeComponent(Component* component);
     void clearComponents();
+    void markAllComponentsDirty();
 
     // Helper methods to create common components
     Button* createButton(int x, int y, int width, int height, const String& text);

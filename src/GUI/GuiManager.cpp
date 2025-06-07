@@ -39,6 +39,7 @@ void GuiManager::update() {
 
 void GuiManager::clear() {
     m_lcd.clear();
+    markAllComponentsDirty();  // Components need to be redrawn after clearing
 }
 
 void GuiManager::addComponent(Component* component) {
@@ -211,6 +212,7 @@ void GuiManager::println(const String& text) {
 
 void GuiManager::fillScreen(uint16_t color) {
     m_lcd.fillScreen(color);
+    markAllComponentsDirty();  // Components need to be redrawn after filling screen
 }
 
 int GuiManager::getWidth() const {
@@ -223,8 +225,16 @@ int GuiManager::getHeight() const {
 
 void GuiManager::drawComponents() {
     for (auto* component : m_components) {
-        if (component != nullptr) {
+        if (component != nullptr && component->needsRedraw) {
             component->draw(m_lcd);
+        }
+    }
+}
+
+void GuiManager::markAllComponentsDirty() {
+    for (auto* component : m_components) {
+        if (component != nullptr) {
+            component->markDirty();
         }
     }
 }
@@ -233,6 +243,7 @@ bool GuiManager::handleComponentTouch() {
     bool touchHandled = false;
     for (auto* component : m_components) {
         if (component != nullptr && component->checkTouching(m_lcd)) {
+            component->markDirty();  // Mark for redraw to show visual feedback
             component->clicked();
             touchHandled = true;
             break;  // Handle only the first touched component

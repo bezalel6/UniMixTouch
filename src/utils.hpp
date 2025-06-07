@@ -32,7 +32,6 @@ class Rectangle {
             Serial.printf("%d ", arr[i]);
         }
         Serial.println("");
-        delay(1000);
         return (p.x >= origin.x && p.x <= topRight.x && p.y >= origin.y && p.y <= topRight.y);
     }
 };
