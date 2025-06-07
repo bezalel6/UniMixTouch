@@ -75,8 +75,11 @@ class GuiManager {
     int m_textSize;
     uint16_t m_textColor;
     Preferences m_preferences;
+    TouchCoordinates m_currentTouch;  // Current touch coordinates
+    static int s_touchHandlingDepth;  // Recursion depth counter
 
     // Helper functions
     void drawComponents();
     bool handleComponentTouch();
+    TouchCoordinates getTouchCoordinates();  // Get current touch coordinates from LCD
 };

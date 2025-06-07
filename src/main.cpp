@@ -74,6 +74,7 @@ void setup(void) {
     valueLabel->layoutProps.height = 25;
     valueLabel->layoutProps.widthMode = SizeMode::FILL;
     valueLabel->setTextColor(TFT_WHITE);
+    valueLabel->setBackgroundColor(TFT_BLACK);
     valueLabel->setTextSize(2);
     valueLabel->setAlignment(Alignment::CENTER);
     mainPanel->addComponent(valueLabel);
@@ -170,6 +171,7 @@ void updateProgressDisplay() {
     }
     if (valueLabel) {
         valueLabel->setText("Value: " + String(currentProgress, 1));
+        valueLabel->markDirty();
     }
 
     // Control LEDs based on progress level

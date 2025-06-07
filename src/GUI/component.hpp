@@ -35,27 +35,46 @@ class Component {
         needsRedraw = false;
     }
 
-    bool checkTouching(LGFX lcd) {
-        int pos[2] = {0, 0};
-        if (lcd.getTouch(&pos[0], &pos[1])) {
-            if (this->isDebouncing) {
-                return false;
-            }
-            auto didTouch = this->bounds.checkInside({pos[0], pos[1]});
-            // Serial.printf("touch: %d %d touched? %s", pos[0], pos[1], didTouch ? "YES" : "NO");
-            this->isDebouncing = didTouch;
-            return didTouch;
-        } else {
-            this->isDebouncing = false;
+    bool checkTouching(const TouchCoordinates& touchCoords) {
+        // Global debouncing check
+        static unsigned long lastTouchTime = 0;
+        static const unsigned long DEBOUNCE_TIME_MS = 200;  // 200ms debounce
+
+        unsigned long currentTime = millis();
+        if (currentTime - lastTouchTime < DEBOUNCE_TIME_MS) {
+            return false;
         }
 
-        return false;
+        if (!touchCoords.isTouched) {
+            this->isDebouncing = false;
+            return false;
+        }
+
+        if (this->isDebouncing) {
+            return false;
+        }
+
+        // Check bounds with minimal debug output
+        auto didTouch = this->bounds.checkInside(touchCoords.toPoint());
+
+        if (didTouch) {
+            lastTouchTime = currentTime;
+            this->isDebouncing = true;
+        }
+
+        return didTouch;
     }
+
     void clicked() {
-        // if (this->onClick) {
-        this->onClick();
-        // }
+        if (this->onClick) {
+            this->onClick();
+        }
     };
+
+    // Reset debouncing state (called by GuiManager after handling)
+    void resetDebouncing() {
+        this->isDebouncing = false;
+    }
 
     //    private:
     f_void onClick;

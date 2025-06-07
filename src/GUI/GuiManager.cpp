@@ -1,9 +1,13 @@
 #include "GuiManager.hpp"
 #include <algorithm>
+#include "esp_task_wdt.h"
 
 GuiManager::GuiManager(LGFX& lcd)
     : m_lcd(lcd), m_textSize(DEFAULT_TEXT_SIZE), m_textColor(TFT_WHITE) {
 }
+
+// Initialize static member
+int GuiManager::s_touchHandlingDepth = 0;
 
 GuiManager::~GuiManager() {
     clearComponents();
@@ -34,7 +38,14 @@ void GuiManager::init() {
 
 void GuiManager::update() {
     drawComponents();
+
+    // Rate limit touch handling to prevent overwhelming the system
+    static unsigned long lastTouchCheck = 0;
+    unsigned long now = millis();
+    // if (now - lastTouchCheck > 50) {  // Check touch every 50ms
     handleComponentTouch();
+    lastTouchCheck = now;
+    // }
 }
 
 void GuiManager::clear() {
@@ -298,27 +309,83 @@ void GuiManager::markAllComponentsDirty() {
 }
 
 bool GuiManager::handleComponentTouch() {
+    // Prevent recursive calls
+    if (s_touchHandlingDepth > 0) {
+        Serial.println("ERROR: Recursive touch handling detected, aborting");
+        return false;
+    }
+
+    s_touchHandlingDepth++;
+
+    // Get current touch coordinates from LCD
+    m_currentTouch = getTouchCoordinates();
+
+    if (!m_currentTouch.isTouched) {
+        s_touchHandlingDepth--;
+        // Reset all component debouncing states when no touch is detected
+        for (auto* component : m_components) {
+            if (component != nullptr) {
+                component->resetDebouncing();
+            }
+        }
+        return false;
+    }
+
+    // Reduced debug output - only log when touch is first detected
+    static bool wasTouching = false;
+    if (!wasTouching) {
+        Serial.printf("Touch detected at: %d, %d\n", m_currentTouch.x, m_currentTouch.y);
+    }
+    wasTouching = true;
+
     bool touchHandled = false;
     // Handle touch for components in reverse order (top to bottom)
-    for (auto it = m_components.rbegin(); it != m_components.rend(); ++it) {
+    int i = 0;
+    for (auto it = m_components.rbegin(); it != m_components.rend(); ++it, i++) {
+        // Feed watchdog to prevent reset during touch processing
+        esp_task_wdt_reset();
+        yield();
+
         Component* component = *it;
         if (component != nullptr) {
             // Check if it's a Panel and handle its internal touch events first
             if (component->isPanel()) {
                 Panel* panel = static_cast<Panel*>(component);
-                if (panel->handleTouch(m_lcd)) {
+                if (panel->handleTouch(m_currentTouch)) {
                     touchHandled = true;
                     break;
                 }
             }
             // If not handled by panel children, check the component itself
-            else if (component->checkTouching(m_lcd)) {
-                component->markDirty();  // Mark for redraw to show visual feedback
-                component->clicked();
-                touchHandled = true;
-                break;  // Handle only the first touched component
+            else {
+                if (component->checkTouching(m_currentTouch)) {
+                    component->markDirty();  // Mark for redraw to show visual feedback
+                    component->clicked();
+                    touchHandled = true;
+                    break;  // Handle only the first touched component
+                }
             }
         }
+
+        // Safety check to prevent infinite loops
+        if (i > 20) {
+            Serial.println("ERROR: Too many components, breaking to prevent infinite loop");
+            break;
+        }
     }
+
+    // Reset wasTouching flag when touch is no longer detected
+    if (!m_currentTouch.isTouched) {
+        wasTouching = false;
+    }
+
+    s_touchHandlingDepth--;
     return touchHandled;
+}
+
+TouchCoordinates GuiManager::getTouchCoordinates() {
+    int pos[2] = {0, 0};
+    bool isTouched = m_lcd.getTouch(&pos[0], &pos[1]);
+    // Serial.printf("Is Touched: %s\n", isTouched ? "TRUE" : "FALSE");
+    return TouchCoordinates(pos[0], pos[1], isTouched);
 }

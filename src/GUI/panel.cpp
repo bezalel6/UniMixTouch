@@ -1,6 +1,7 @@
 #include "panel.hpp"
 #include "layout.hpp"
 #include <algorithm>
+#include "esp_task_wdt.h"
 
 Panel::Panel(Rectangle bounds) : Component(bounds) {
     // Panel is constructed with fixed bounds
@@ -87,16 +88,28 @@ void Panel::calculateLayout() {
     }
 }
 
-bool Panel::handleTouch(LGFX& lcd) {
+bool Panel::handleTouch(const TouchCoordinates& touchCoords) {
     // Handle touch for child components (in reverse order for proper layering)
-    for (auto it = m_components.rbegin(); it != m_components.rend(); ++it) {
+    int i = 0;
+    for (auto it = m_components.rbegin(); it != m_components.rend(); ++it, i++) {
+        // Feed watchdog to prevent reset during panel touch processing
+        esp_task_wdt_reset();
+        yield();
+
         Component* comp = *it;
-        if (comp && comp->checkTouching(lcd)) {
+        if (comp && comp->checkTouching(touchCoords)) {
             comp->markDirty();
             comp->clicked();
             return true;
         }
+
+        // Safety check to prevent infinite loops
+        if (i > 20) {
+            Serial.println("ERROR: Panel has too many child components, breaking to prevent infinite loop");
+            break;
+        }
     }
+
     return false;
 }
 

@@ -5,6 +5,20 @@ struct Point {
     int x;
     int y;
 };
+
+struct TouchCoordinates {
+    int x;
+    int y;
+    bool isTouched;
+
+    TouchCoordinates() : x(0), y(0), isTouched(false) {}
+    TouchCoordinates(int x, int y, bool isTouched) : x(x), y(y), isTouched(isTouched) {}
+
+    Point toPoint() const {
+        return {x, y};
+    }
+};
+
 using f_void = void (*)();
 
 class Rectangle {
@@ -25,14 +39,12 @@ class Rectangle {
         return {origin.x + (w / 2), origin.y + (h / 2)};
     }
     bool checkInside(Point p) {
-        Serial.printf("point: %d %d\n", p.x, p.y);
-        Serial.printf("origin: %d %d\n", origin.x, origin.y);
-        Serial.printf("top right: %d %d\n", topRight.x, topRight.y);
-        bool arr[] = {p.x >= origin.x, p.x <= topRight.x, p.y >= origin.y, p.y <= topRight.y};
-        for (size_t i = 0; i < 4; i++) {
-            Serial.printf("%d ", arr[i]);
+        // Add bounds validation to prevent potential issues
+        if (w <= 0 || h <= 0) {
+            return false;
         }
-        Serial.println("");
-        return (p.x >= origin.x && p.x <= topRight.x && p.y >= origin.y && p.y <= topRight.y);
+
+        bool result = (p.x >= origin.x && p.x <= topRight.x && p.y >= origin.y && p.y <= topRight.y);
+        return result;
     }
 };

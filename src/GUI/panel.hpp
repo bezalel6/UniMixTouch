@@ -42,7 +42,7 @@ class Panel : public Component {
     void calculateLayout();
 
     // Touch handling
-    bool handleTouch(LGFX& lcd);
+    bool handleTouch(const TouchCoordinates& touchCoords);
 
     // Getters
     const std::vector<Component*>& getComponents() const { return m_components; }
