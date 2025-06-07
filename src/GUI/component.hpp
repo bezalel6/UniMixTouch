@@ -7,7 +7,7 @@ class Component {
     Component(Rectangle& rect) {
         this->bounds = rect;
     }
-    void draw(LGFX lcd);
+    virtual void draw(LGFX lcd) = 0;
     bool checkTouching(LGFX lcd) {
         int pos[2] = {0, 0};
         if (lcd.getTouch(&pos[0], &pos[1])) {
