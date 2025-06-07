@@ -144,7 +144,7 @@ void loop(void) {
     // Update GUI (handle touch events and draw components)
     guiManager.update();
 
-    delay(50);
+    delay(100);
 }
 
 // Button callback functions

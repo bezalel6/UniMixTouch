@@ -42,10 +42,10 @@ void GuiManager::update() {
     // Rate limit touch handling to prevent overwhelming the system
     static unsigned long lastTouchCheck = 0;
     unsigned long now = millis();
-    // if (now - lastTouchCheck > 50) {  // Check touch every 50ms
-    handleComponentTouch();
-    lastTouchCheck = now;
-    // }
+    if (now - lastTouchCheck > 50) {  // Check touch every 50ms
+        handleComponentTouch();
+        lastTouchCheck = now;
+    }
 }
 
 void GuiManager::clear() {
