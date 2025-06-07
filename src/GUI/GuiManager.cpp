@@ -13,7 +13,23 @@ void GuiManager::init() {
     m_lcd.init();
     m_lcd.setTextSize(m_textSize);
     m_lcd.setRotation(0);
-    // performTouchCalibration();
+
+    // Check if we have saved calibration data
+    if (hasSavedCalibration()) {
+        // Load and apply saved calibration
+        std::uint16_t calData[8];  // Standard calibration data array size
+        if (loadTouchCalibration(calData)) {
+            m_lcd.setTouchCalibrate(calData);
+            Serial.println("Touch calibration loaded from storage");
+        } else {
+            Serial.println("Failed to load touch calibration, performing new calibration");
+            performTouchCalibration();
+        }
+    } else {
+        // No saved calibration found, perform calibration
+        Serial.println("No saved touch calibration found, performing calibration");
+        performTouchCalibration();
+    }
 }
 
 void GuiManager::update() {
@@ -72,10 +88,99 @@ void GuiManager::performTouchCalibration() {
     if (m_lcd.isEPD()) {
         std::swap(fg, bg);
     }
-    m_lcd.calibrateTouch(nullptr, fg, bg, std::max(m_lcd.width(), m_lcd.height()) >> 3);
+
+    std::uint16_t calData[8];  // Array to store calibration data
+    m_lcd.calibrateTouch(calData, fg, bg, std::max(m_lcd.width(), m_lcd.height()) >> 3);
+
+    // Save the calibration data to preferences
+    if (saveTouchCalibration(calData)) {
+        Serial.println("Touch calibration saved to storage");
+    } else {
+        Serial.println("Failed to save touch calibration");
+    }
 
     m_lcd.clear();
     m_lcd.setTextSize(m_textSize);
+}
+
+bool GuiManager::saveTouchCalibration(std::uint16_t* calData) {
+    if (calData == nullptr) {
+        Serial.println("Error: Invalid calibration data");
+        return false;
+    }
+
+    m_preferences.begin("touch_cal", false);
+
+    // Save calibration data as bytes
+    size_t bytesWritten = m_preferences.putBytes("cal_data", calData, 8 * sizeof(std::uint16_t));
+    bool success = (bytesWritten == 8 * sizeof(std::uint16_t));
+
+    if (success) {
+        // Set a flag to indicate we have valid calibration data
+        m_preferences.putBool("cal_valid", true);
+
+        // Log the calibration values for debugging
+        Serial.print("Saved calibration data: ");
+        for (int i = 0; i < 8; i++) {
+            Serial.print(calData[i]);
+            if (i < 7) Serial.print(", ");
+        }
+        Serial.println();
+    } else {
+        Serial.println("Error: Failed to save calibration data to preferences");
+    }
+
+    m_preferences.end();
+    return success;
+}
+
+bool GuiManager::loadTouchCalibration(std::uint16_t* calData) {
+    if (calData == nullptr) {
+        Serial.println("Error: Invalid calibration data buffer");
+        return false;
+    }
+
+    m_preferences.begin("touch_cal", true);  // Read-only mode
+
+    // Check if we have valid calibration data
+    bool hasValidData = m_preferences.getBool("cal_valid", false);
+    if (!hasValidData) {
+        m_preferences.end();
+        return false;
+    }
+
+    // Load calibration data
+    size_t bytesRead = m_preferences.getBytes("cal_data", calData, 8 * sizeof(std::uint16_t));
+    bool success = (bytesRead == 8 * sizeof(std::uint16_t));
+
+    if (success) {
+        // Log the loaded calibration values for debugging
+        Serial.print("Loaded calibration data: ");
+        for (int i = 0; i < 8; i++) {
+            Serial.print(calData[i]);
+            if (i < 7) Serial.print(", ");
+        }
+        Serial.println();
+    } else {
+        Serial.println("Error: Failed to load calibration data from preferences");
+    }
+
+    m_preferences.end();
+    return success;
+}
+
+bool GuiManager::hasSavedCalibration() {
+    m_preferences.begin("touch_cal", true);  // Read-only mode
+    bool hasValid = m_preferences.getBool("cal_valid", false);
+    m_preferences.end();
+    return hasValid;
+}
+
+void GuiManager::clearTouchCalibration() {
+    m_preferences.begin("touch_cal", false);
+    m_preferences.clear();
+    m_preferences.end();
+    Serial.println("Touch calibration data cleared");
 }
 
 bool GuiManager::processTouchEvents() {

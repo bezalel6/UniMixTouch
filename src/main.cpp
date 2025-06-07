@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "BluetoothSerial.h"
 #include "ESP32_SPI_9341.h"
 #include "GUI/GuiManager.hpp"
 
@@ -22,12 +21,6 @@ int led_pin[3] = {17, 4, 16};
 
 LGFX lcd;
 GuiManager guiManager(lcd);
-
-#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
-#endif
-
-BluetoothSerial SerialBT;
 
 void led_set(int i);
 void setup(void) {

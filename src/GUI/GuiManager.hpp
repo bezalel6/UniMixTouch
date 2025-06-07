@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <Preferences.h>
 #include "ESP32_SPI_9341.h"
 #include "component.hpp"
 #include "button.hpp"
@@ -30,6 +31,12 @@ class GuiManager {
     void performTouchCalibration();
     bool processTouchEvents();
 
+    // Touch calibration storage methods
+    bool saveTouchCalibration(std::uint16_t* calData);
+    bool loadTouchCalibration(std::uint16_t* calData);
+    bool hasSavedCalibration();
+    void clearTouchCalibration();
+
     // Display functions
     void setTextSize(int size);
     void setTextColor(uint16_t color);
@@ -47,6 +54,7 @@ class GuiManager {
     std::vector<Component*> m_components;
     int m_textSize;
     uint16_t m_textColor;
+    Preferences m_preferences;
 
     // Helper functions
     void drawComponents();
