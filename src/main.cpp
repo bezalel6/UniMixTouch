@@ -52,6 +52,7 @@ void setup(void) {
 
     // Create main container panel
     Panel* mainPanel = guiManager.createFlexPanel(LayoutType::FLEX_COLUMN);
+    mainPanel->setId("main-panel");
     mainPanel->bounds = Rectangle(0, 0, guiManager.getWidth(), guiManager.getHeight());
     mainPanel->setBackgroundColor(TFT_BLACK);
     mainPanel->setPadding(20);

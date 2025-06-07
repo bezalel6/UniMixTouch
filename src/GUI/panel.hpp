@@ -32,6 +32,10 @@ class Panel : public Component {
     void setGridColumns(int columns) { m_gridColumns = columns; }
     void setGridRows(int rows) { m_gridRows = rows; }
 
+    // ID management
+    void setId(const String& id) { m_id = id; }
+    String getId() const { return m_id; }
+
     // Drawing
     void draw(LGFX lcd) override;
 
@@ -64,8 +68,11 @@ class Panel : public Component {
     void setMargin(int margin) { layoutProps.setMargin(margin); }
 
    private:
+    static int s_nextPanelId;  // Static counter for automatic ID generation
+
     std::vector<Component*> m_components;
     LayoutType m_layoutType = LayoutType::NONE;
+    String m_id;  // Panel ID string
 
     // Layout alignment properties
     Alignment m_justifyContent = Alignment::START;  // Main axis alignment

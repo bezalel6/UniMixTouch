@@ -3,12 +3,17 @@
 #include <algorithm>
 #include "esp_task_wdt.h"
 
+// Initialize static counter
+int Panel::s_nextPanelId = 1;
+
 Panel::Panel(Rectangle bounds) : Component(bounds) {
     // Panel is constructed with fixed bounds
+    m_id = String(s_nextPanelId++);
 }
 
 Panel::Panel() : Component() {
     // Panel will be layout-managed by parent
+    m_id = String(s_nextPanelId++);
 }
 
 Panel::~Panel() {
@@ -89,6 +94,10 @@ void Panel::calculateLayout() {
 }
 
 bool Panel::handleTouch(const TouchCoordinates& touchCoords) {
+    if (this->getId().equals("main-panel")) {
+        Serial.println("main panel asked to handle touch. returning: true");
+        return true;
+    }
     // Handle touch for child components (in reverse order for proper layering)
     int i = 0;
     for (auto it = m_components.rbegin(); it != m_components.rend(); ++it, i++) {
